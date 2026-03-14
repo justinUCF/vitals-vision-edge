@@ -1,0 +1,42 @@
+[
+  {
+    "class_id": 2,
+    "class_name": "person",
+    "confidence": 0.8277190923690796,
+    "bbox_normalized": {
+      "x_min": 0.3333359360694885,
+      "y_min": 0.5577592849731445,
+      "x_max": 0.3778320848941803,
+      "y_max": 0.695300281047821
+    },
+    "bbox_pixels": {
+      "x_min": 213,
+      "y_min": 356,
+      "x_max": 241,
+      "y_max": 444
+    },
+    "drone_id": 7,
+    "location": "28.5,-81.5",
+    "caption": null
+  },
+  {
+    "class_id": 2,
+    "class_name": "person",
+    "confidence": 0.821749210357666,
+    "bbox_normalized": {
+      "x_min": 0.4872285723686218,
+      "y_min": 0.22677794098854065,
+      "x_max": 0.505557656288147,
+      "y_max": 0.3211618959903717
+    },
+    "bbox_pixels": {
+      "x_min": 311,
+      "y_min": 145,
+      "x_max": 323,
+      "y_max": 205
+    },
+    "drone_id": 7,
+    "location": "28.5,-81.5",
+    "caption": null
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "mission_id": "mission_20260308_192454",
+  "uav_id": "USB_CAM_0",
+  "sector": "TEST_ZONE",
+  "timestamp": "20260308_193229",
+  "frames_captured": 6615,
+  "frames_processed": 6,
+  "mcp_messages": 9,
+  "detection_messages": 7,
+  "caption_messages": 2,
+  "avg_processing_time": 2.029607653617859
+}

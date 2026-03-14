@@ -1,0 +1,222 @@
+[
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_8642ca0b4399",
+    "ts": "2026-03-08T23:25:02.529Z",
+    "type": "MCP.Detection",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "label": "person",
+      "confidence": 0.544676661491394,
+      "bbox_xyxy": [
+        1.0,
+        159.0,
+        226.0,
+        480.0
+      ],
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:25:02.529Z"
+    },
+    "corr_id": "mission_20260308_192454",
+    "text": "Person detected in sector TEST_ZONE with 54% confidence by USB_CAM_0."
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_ecc68ae67233",
+    "ts": "2026-03-08T23:25:05.666Z",
+    "type": "MCP.Detection",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "label": "person",
+      "confidence": 0.5215362310409546,
+      "bbox_xyxy": [
+        14.0,
+        79.0,
+        42.0,
+        108.0
+      ],
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:25:05.666Z"
+    },
+    "corr_id": "mission_20260308_192454",
+    "text": "Person detected in sector TEST_ZONE with 52% confidence by USB_CAM_0."
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_6a4a1553bc2a",
+    "ts": "2026-03-08T23:25:06.466Z",
+    "type": "MCP.Detection",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "label": "person",
+      "confidence": 0.5242806077003479,
+      "bbox_xyxy": [
+        14.0,
+        79.0,
+        42.0,
+        108.0
+      ],
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:25:06.466Z"
+    },
+    "corr_id": "mission_20260308_192454",
+    "text": "Person detected in sector TEST_ZONE with 52% confidence by USB_CAM_0."
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_30d17340899c",
+    "ts": "2026-03-08T23:25:23.922Z",
+    "type": "MCP.Detection",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "label": "person",
+      "confidence": 0.6755401492118835,
+      "bbox_xyxy": [
+        0.0,
+        161.0,
+        344.0,
+        477.0
+      ],
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:25:23.922Z"
+    },
+    "corr_id": "mission_20260308_192454",
+    "text": "Person detected in sector TEST_ZONE with 68% confidence by USB_CAM_0."
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_bf9791307c63",
+    "ts": "2026-03-08T23:25:23.922Z",
+    "type": "MCP.Detection",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "label": "person",
+      "confidence": 0.5915541648864746,
+      "bbox_xyxy": [
+        421.0,
+        6.0,
+        527.0,
+        78.0
+      ],
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:25:23.922Z"
+    },
+    "corr_id": "mission_20260308_192454",
+    "text": "Person detected in sector TEST_ZONE with 59% confidence by USB_CAM_0."
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_5ca03a678e38",
+    "ts": "2026-03-08T23:32:01.598Z",
+    "type": "MCP.Detection",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "label": "person",
+      "confidence": 0.8220990300178528,
+      "bbox_xyxy": [
+        264.0,
+        102.0,
+        275.0,
+        150.0
+      ],
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:32:01.598Z"
+    },
+    "corr_id": "mission_20260308_192454",
+    "text": "Person detected in sector TEST_ZONE with 82% confidence by USB_CAM_0."
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_798c3cc5af5a",
+    "ts": "2026-03-08T23:32:01.598Z",
+    "type": "MCP.Caption",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "caption": "Scene detected, details unclear.",
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:32:01.598Z"
+    },
+    "text": "Scene detected, details unclear.",
+    "corr_id": "mission_20260308_192454"
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_851eee7f62a0",
+    "ts": "2026-03-08T23:32:01.598Z",
+    "type": "MCP.Detection",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "label": "person",
+      "confidence": 0.7563840746879578,
+      "bbox_xyxy": [
+        182.0,
+        282.0,
+        207.0,
+        358.0
+      ],
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:32:01.598Z"
+    },
+    "corr_id": "mission_20260308_192454",
+    "text": "Person detected in sector TEST_ZONE with 76% confidence by USB_CAM_0."
+  },
+  {
+    "schema": "mcp.v0.1",
+    "event_id": "evt_58abae446803",
+    "ts": "2026-03-08T23:32:01.598Z",
+    "type": "MCP.Caption",
+    "source": {
+      "system": "VITALS",
+      "component": "AgentA",
+      "instance": "USB_CAM_0"
+    },
+    "payload": {
+      "caption": "A composite and has a person on a surfboard in the foreground. The individual appears to be wearing a green life jacket and is in a crouched position, seemingly paddling or preparing to stand up on the surfboard.",
+      "sector": "TEST_ZONE",
+      "uav_id": "USB_CAM_0",
+      "frame_ts": "2026-03-08T23:32:01.598Z"
+    },
+    "text": "A composite and has a person on a surfboard in the foreground. The individual appears to be wearing a green life jacket and is in a crouched position, seemingly paddling or preparing to stand up on the surfboard.",
+    "corr_id": "mission_20260308_192454"
+  }
+]

@@ -1,0 +1,10 @@
+
+# On Jetson Orin Nano they ship pre-built in the L4T base image (nvcr.io/nvidia/l4t-pytorch).
+# For local dev on x86, install: pip install torch torchvision
+
+opencv-python-headless>=4.8.0
+ultralytics>=8.3.0
+numpy>=1.24.0
+pillow>=10.0.0
+requests>=2.31.0
+pyserial>=3.5

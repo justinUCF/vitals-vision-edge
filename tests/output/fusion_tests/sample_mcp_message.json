@@ -1,0 +1,35 @@
+{
+  "schema": "mcp.v0.1",
+  "event_id": "evt_910b9b176c59",
+  "ts": "2026-02-17T07:12:31.208Z",
+  "type": "MCP.Detection",
+  "source": {
+    "system": "VITALS",
+    "component": "AgentA",
+    "instance": "UAV_1"
+  },
+  "payload": {
+    "label": "person",
+    "confidence": 0.8277190923690795,
+    "bbox_xyxy": [
+      213.0,
+      356.0,
+      241.0,
+      444.0
+    ],
+    "track_id": "track_a7d41c44",
+    "sector": "A1",
+    "uav_id": "UAV_1",
+    "frame_ts": "2026-02-17T07:12:31.208Z"
+  },
+  "corr_id": "test_mission_001",
+  "priority": 96,
+  "geo": {
+    "lat": 28.6024,
+    "lon": -81.2001
+  },
+  "tags": [
+    "person_detected"
+  ],
+  "text": "Person detected in sector A1 with 83% confidence by UAV_1."
+}
