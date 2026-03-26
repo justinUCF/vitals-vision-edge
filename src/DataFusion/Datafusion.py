@@ -160,6 +160,7 @@ class DataFusion:
         self.iou_threshold = iou_threshold
         self.min_track_frames = min_track_frames
         self.max_track_age = max_track_age
+        self.max_completed_tracks = 500  # cap to prevent unbounded memory growth
         
         # Tracking state
         self.active_tracks: List[TrackedDetection] = []
@@ -239,7 +240,11 @@ class DataFusion:
                 # Move to completed if it was stable
                 if track.is_stable(self.min_track_frames):
                     self.completed_tracks.append(track)
-        
+
+        # Trim oldest completed tracks if cap exceeded
+        if len(self.completed_tracks) > self.max_completed_tracks:
+            self.completed_tracks = self.completed_tracks[-self.max_completed_tracks:]
+
         self.active_tracks = active
     
     def get_stable_tracks(self) -> List[TrackedDetection]:

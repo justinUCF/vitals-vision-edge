@@ -4,7 +4,7 @@ VITALS Vision Edge — main entry point for Jetson Orin Nano.
 Pipeline per frame:
   USB Camera → YOLO → DataFusion (temporal tracking)
       → [stable person track, conf ≥ PERSON_THRESH]
-          → LLaVA caption (via Ollama)
+          → VLM caption (via Ollama)
               → MCP.Detection + MCP.Caption → TCP to Agent B
 
 A MCP message pair is emitted at most once per tracked person.
@@ -16,7 +16,7 @@ Environment variables (all optional, defaults shown):
   YOLO_MODEL         = ../yolo_models/rf3v1.pt  (relative to src/)
   YOLO_CONF          = 0.5    YOLO detection confidence threshold
   PERSON_THRESH      = 0.7    Track EMA confidence required to emit MCP
-  CAPTION_THRESH     = 0.7    Per-detection confidence required to call LLaVA
+  CAPTION_THRESH     = 0.7    Per-detection confidence required to call VLM
   MIN_TRACK_FRAMES   = 3      Frames a track must be seen before emitting
   AGENT_B_HOST       = 192.168.1.100
   AGENT_B_PORT       = 9000
@@ -26,10 +26,12 @@ Environment variables (all optional, defaults shown):
   DEVICE             = cuda   ('cpu' for dev without GPU)
 """
 
+import json
 import logging
 import os
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -69,6 +71,10 @@ SECTOR           = os.getenv("SECTOR",   None)
 OLLAMA_HOST      = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 DEVICE           = os.getenv("DEVICE",   "cuda")
 
+GPS_LAT          = os.getenv("GPS_LAT",  None)  # e.g. "28.6024"
+GPS_LON          = os.getenv("GPS_LON",  None)  # e.g. "-81.2001"
+GPS_LOCATION     = f"{GPS_LAT},{GPS_LON}" if GPS_LAT and GPS_LON else None
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -100,8 +106,15 @@ def main():
     logger.info("YOLO model : %s", YOLO_MODEL)
     logger.info("Ollama host: %s", OLLAMA_HOST)
     logger.info("Agent B    : %s:%d", AGENT_B_HOST, AGENT_B_PORT)
+    logger.info("GPS        : %s", GPS_LOCATION or "not set (geo will be omitted from MCP)")
 
-    # -- PerceptionEngine (YOLO + LLaVA) -----------------------------------
+    log_dir = _SRC.parent / "tests" / "output" / "main_mcp"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"mcp_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+    mcp_log = open(log_path, "w", encoding="utf-8")
+    logger.info("MCP log    : %s", log_path)
+
+    # -- PerceptionEngine (YOLO + VLM) -----------------------------------
     engine = PerceptionEngine(
         yolo_model_path=YOLO_MODEL,
         yolo_confidence=YOLO_CONF,
@@ -140,6 +153,7 @@ def main():
             detections, _ = engine.process_image(
                 frame,
                 drone_id=1,
+                location=GPS_LOCATION,
                 generate_captions=False,
                 return_annotated=False,
             )
@@ -171,7 +185,7 @@ def main():
                     track.track_id, track.confidence, track.frame_count,
                 )
 
-                # 5. LLaVA caption
+                # 5. VLM caption
                 try:
                     caption = captioner.caption_detection(
                         image=frame,
@@ -180,7 +194,7 @@ def main():
                         confidence=best_det.confidence,
                     )
                 except Exception as exc:
-                    logger.error("LLaVA caption failed: %s", exc)
+                    logger.error("VLM caption failed: %s", exc)
                     continue
 
                 if not caption or caption.startswith("Error:"):
@@ -198,17 +212,18 @@ def main():
                     include_captions=True,
                 )
 
-                # 7. Send each message over TCP
+                # 7. Send each message over TCP and log to file
                 for msg in messages:
-                    sent = sender.send(msg)
-                    status = "sent" if sent else "queued (no connection)"
+                    sender.send(msg)
+                    mcp_log.write(json.dumps(msg) + "\n")
+                    mcp_log.flush()
                     logger.info(
-                        "MCP %s [%s] track=%s conf=%.2f — %s",
+                        "MCP %s [%s] track=%s conf=%.2f — queued (buffer=%d)",
                         msg.get("type", "?"),
                         msg.get("event_id", "?"),
                         track.track_id,
                         track.confidence,
-                        status,
+                        sender.buffer_size(),
                     )
 
                 captioned_tracks.add(track.track_id)
@@ -218,6 +233,7 @@ def main():
     finally:
         cap.release()
         sender.close()
+        mcp_log.close()
         logger.info("Shutdown complete")
 
 

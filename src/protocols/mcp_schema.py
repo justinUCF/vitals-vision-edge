@@ -186,7 +186,7 @@ class MCPDetection:
 
 class MCPCaption:
     """
-    MCP.Caption message - for LLaVA-generated scene descriptions.
+    MCP.Caption message - for VLM-generated scene descriptions.
     
     Schema location: schemas/mcp.v0.1/types/caption.json
     """
@@ -300,16 +300,16 @@ def create_detection_from_yolo(detection,
     )
 
 
-def create_caption_from_llava(caption_text: str,
+def create_caption_from_vlm(caption_text: str,
                                uav_id: str,
                                confidence: Optional[float] = None,
                                sector: Optional[str] = None,
                                correlation_id: Optional[str] = None) -> MCPCaption:
     """
-    Helper: Create MCP.Caption from LLaVA output
+    Helper: Create MCP.Caption from VLM output
     
     Args:
-        caption_text: LLaVA-generated description
+        caption_text: VLM-generated description
         uav_id: UAV identifier
         confidence: Optional confidence score
         sector: Optional sector

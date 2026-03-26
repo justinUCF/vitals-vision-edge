@@ -1,5 +1,5 @@
 """
-test_llava.py — LLaVACaptioner tests
+test_vlm.py — VLMCaptioner tests
 
 Tests caption generation, SAR prompt building, caption cleaning,
 and graceful degradation when Ollama is unavailable.
@@ -8,8 +8,8 @@ Ollama is optional — tests that require it are skipped with a clear
 message if the server is not reachable.
 
 Run:
-    python tests/test_llava.py
-    pytest tests/test_llava.py -v
+    python tests/test_vlm.py
+    pytest tests/test_vlm.py -v
 """
 
 import sys
@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import cv2
 import numpy as np
 from PIL import Image
-from PerceptionProcessing.LLaVACaptioner import LLaVACaptioner
+from PerceptionProcessing.VLMCaptioner import VLMCaptioner
 
 # ── config ────────────────────────────────────────────────────────────────────
 IMAGE1  = ROOT / "tests" / "images" / "drone_testing1.jpg"
@@ -52,9 +52,9 @@ def _skip(msg): print(f"  SKIP  {msg}")
 # ── tests ─────────────────────────────────────────────────────────────────────
 
 def test_initialization():
-    """1 — LLaVACaptioner initializes without network access."""
+    """1 — VLMCaptioner initializes without network access."""
     _header(1, "Initialization")
-    captioner = LLaVACaptioner(device="cpu", ollama_host=OLLAMA_HOST)
+    captioner = VLMCaptioner(device="cpu", ollama_host=OLLAMA_HOST)
     assert captioner.model_loaded is True
     assert captioner.ollama_host == OLLAMA_HOST.rstrip("/")
     _ok(f"Initialized — ollama_host={captioner.ollama_host}")
@@ -134,7 +134,7 @@ def test_ollama_unavailable_returns_error_string(captioner):
     if _ollama_available():
         _skip("Ollama is running — this test targets the offline path")
         return
-    cap = LLaVACaptioner(device="cpu", ollama_host="http://localhost:19999")
+    cap = VLMCaptioner(device="cpu", ollama_host="http://localhost:19999")
     frame = cv2.imread(str(IMAGE1))
     result = cap.caption_image(frame)
     assert result.startswith("Error:"), f"Expected error string, got: {result!r}"
@@ -145,7 +145,7 @@ def test_caption_image_with_ollama(captioner):
     """9 — caption_image() returns a real string when Ollama is available."""
     _header(9, "caption_image() — requires Ollama")
     if not _ollama_available():
-        _skip("Ollama not reachable — start with 'ollama serve && ollama pull llava'")
+        _skip("Ollama not reachable — start with 'ollama serve && ollama pull moondream'")
         return
     frame = cv2.imread(str(IMAGE1))
     caption = captioner.caption_image(frame)
@@ -158,7 +158,7 @@ def test_caption_detection_with_ollama(captioner):
     """10 — caption_detection() returns an SAR-relevant description."""
     _header(10, "caption_detection() — requires Ollama")
     if not _ollama_available():
-        _skip("Ollama not reachable — start with 'ollama serve && ollama pull llava'")
+        _skip("Ollama not reachable — start with 'ollama serve && ollama pull moondream'")
         return
     frame = cv2.imread(str(IMAGE_P))
     h, w = frame.shape[:2]
@@ -179,7 +179,7 @@ def test_custom_ollama_host():
     """11 — ollama_host env var flows through to the request URL."""
     _header(11, "Custom OLLAMA_HOST")
     custom_host = "http://10.0.0.5:11434"
-    cap = LLaVACaptioner(device="cpu", ollama_host=custom_host)
+    cap = VLMCaptioner(device="cpu", ollama_host=custom_host)
     assert cap.ollama_host == custom_host.rstrip("/")
     _ok(f"Custom host stored: {cap.ollama_host}")
 
@@ -188,7 +188,7 @@ def test_custom_ollama_host():
 
 def run():
     print("\n" + "#"*70)
-    print("#" + " "*21 + "LLAVA CAPTIONER TEST SUITE" + " "*21 + "#")
+    print("#" + " "*22 + "VLM CAPTIONER TEST SUITE" + " "*22 + "#")
     print("#"*70)
     print(f"  Ollama host : {OLLAMA_HOST}")
     print(f"  Ollama live : {'YES' if _ollama_available() else 'NO (offline tests only)'}")

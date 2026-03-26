@@ -1,8 +1,8 @@
 """
 test_perceptionengine.py — PerceptionEngine integration tests
 
-Tests the YOLO + LLaVA orchestration layer.
-LLaVA tests are skipped gracefully when Ollama is not running.
+Tests the YOLO + VLM orchestration layer.
+VLM tests are skipped gracefully when Ollama is not running.
 
 Run:
     python tests/test_perceptionengine.py

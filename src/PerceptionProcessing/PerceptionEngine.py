@@ -1,7 +1,7 @@
 # Agent_A/PerceptionProcessing/PerceptionEngine.py
 
 """
-PerceptionEngine orchestrates YOLO detection + LLaVA captioning.
+PerceptionEngine orchestrates YOLO detection + VLM captioning.
 Handles enrichment with drone metadata (drone_id, location, captions).
 """
 
@@ -10,7 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Optional
 from PerceptionProcessing.YoloDetector import YoloDetector
-from PerceptionProcessing.LLaVACaptioner import LLaVACaptioner
+from PerceptionProcessing.VLMCaptioner import VLMCaptioner
 from PerceptionProcessing.Detection import Detection
 
 
@@ -25,7 +25,7 @@ class PerceptionEngine:
         ollama_host: str = "http://localhost:11434"
     ):
         """
-        Initialize PerceptionEngine with YOLO + LLaVA
+        Initialize PerceptionEngine with YOLO + VLM
         
         Args:
             yolo_model_path: Path to YOLO .pt model
@@ -44,8 +44,8 @@ class PerceptionEngine:
             device=device
         )
         
-        # Initialize LLaVA captioner
-        self.captioner = LLaVACaptioner(device=device, ollama_host=ollama_host)
+        # Initialize VLM captioner
+        self.captioner = VLMCaptioner(device=device, ollama_host=ollama_host)
         
         self.caption_threshold = caption_threshold
         self.device = device
@@ -67,7 +67,7 @@ class PerceptionEngine:
             image_path: Path to image file
             drone_id: Optional drone ID for enrichment
             location: Optional location string (e.g., "28.6024,-81.2001")
-            generate_captions: Whether to generate LLaVA captions
+            generate_captions: Whether to generate VLM captions
             return_annotated: Whether to return annotated image
         
         Returns:
@@ -81,8 +81,9 @@ class PerceptionEngine:
             image_path,
             return_annotated=return_annotated
         )
-        
-        print(f"Found {len(detections)} detection(s)")
+
+        if detections:
+            print(f"Found {len(detections)} detection(s)")
         
         # Enrich with drone metadata
         for det in detections:
@@ -109,7 +110,7 @@ class PerceptionEngine:
             image: Input image as numpy array (BGR format)
             drone_id: Optional drone ID for enrichment
             location: Optional location string
-            generate_captions: Whether to generate LLaVA captions
+            generate_captions: Whether to generate VLM captions
             return_annotated: Whether to return annotated image
         
         Returns:
@@ -120,8 +121,9 @@ class PerceptionEngine:
             image,
             return_annotated=return_annotated
         )
-        
-        print(f"Found {len(detections)} detection(s)")
+
+        if detections:
+            print(f"Found {len(detections)} detection(s)")
         
         # Enrich with drone metadata
         for det in detections:
@@ -139,7 +141,7 @@ class PerceptionEngine:
         detections: List[Detection]
     ) -> List[Detection]:
         """
-        Add LLaVA captions to detections above confidence threshold
+        Add VLM captions to detections above confidence threshold
         
         Args:
             image: Image path or numpy array

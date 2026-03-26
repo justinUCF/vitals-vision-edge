@@ -4,7 +4,7 @@
 # Base image ships PyTorch 2.1 + CUDA built for aarch64/Jetson.
 # Run with:  docker run --runtime nvidia --device /dev/video0 ...
 # -----------------------------------------------------------------------
-FROM nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3
+FROM dustynv/pytorch:2.1-r36.2.0
 
 WORKDIR /app
 
@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --no-deps ultralytics && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
@@ -31,5 +32,5 @@ ENV AGENT_B_HOST=192.168.1.100
 ENV AGENT_B_PORT=9000
 ENV UAV_ID=UAV_1
 
-CMD ["python", "src/main.py"]
+CMD ["python3", "src/main.py"]
 

@@ -9,23 +9,18 @@ services:
       - /dev/video0:/dev/video0   # USB camera; change index if needed
     restart: unless-stopped
     environment:
-      # ---- Camera --------------------------------------------------------
       CAMERA_INDEX: "0"
-      # ---- Model paths ---------------------------------------------------
       YOLO_MODEL: /app/yolo_models/rf3v1.pt
       DEVICE: cuda
-      # ---- Detection thresholds ------------------------------------------
       YOLO_CONF: "0.5"
       PERSON_THRESH: "0.7"
       CAPTION_THRESH: "0.7"
       MIN_TRACK_FRAMES: "3"
-      # ---- Ollama (LLaVA) ------------------------------------------------
+      # ---- Ollama (VLM) --------------------------------------------------
       # When running Ollama on the Jetson host (outside Docker), use
       # localhost because network_mode is host.
       OLLAMA_HOST: http://localhost:11434
-      # ---- Agent B (MCP recipient) ---------------------------------------
-      AGENT_B_HOST: "10.42.0.255"   # <-- update to your Agent B IP
+      AGENT_B_HOST: "10.42.0.255"
       AGENT_B_PORT: "9000"
-      # ---- Mission metadata ----------------------------------------------
       UAV_ID: UAV_1
-      SECTOR: ""            # optional: A1, B4, etc.
+      SECTOR: ""

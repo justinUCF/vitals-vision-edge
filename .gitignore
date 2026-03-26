@@ -1,1 +1,8 @@
 *.md
+__pycache__/
+*.pyc
+*.pyo
+tests/output/
+.env
+venv/
+.venv/

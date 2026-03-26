@@ -89,7 +89,8 @@ class YoloDetector:
             if return_annotated:
                 annotated_img = self.annotate_frame(frame.copy(), detections)
             
-            print(f"Detected {len(detections)} objects")
+            if detections:
+                print(f"Detected {len(detections)} objects")
             
             return detections, annotated_img
             

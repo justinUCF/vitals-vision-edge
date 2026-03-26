@@ -7,11 +7,11 @@ without requiring a USB camera, flight controller, or Ollama server.
 What this test does
 ───────────────────
 1.  Starts a local TCP receiver (simulates Agent B) on 127.0.0.1:19877
-2.  Initialises every module: YoloDetector, LLaVACaptioner, PerceptionEngine,
+2.  Initialises every module: YoloDetector, VLMCaptioner, PerceptionEngine,
     DataFusion, and TCPSender
 3.  Feeds real test images as synthetic "camera frames" through the same
     pipeline logic used by src/main.py
-4.  After MIN_TRACK_FRAMES frames the pipeline will try to call LLaVA;
+4.  After MIN_TRACK_FRAMES frames the pipeline will try to call VLM;
     if Ollama is not running the captioner returns an error string which the
     pipeline correctly discards — the test reports which path was taken
 5.  Verifies that MCP messages (MCP.Detection + MCP.Caption) reach the
@@ -41,7 +41,7 @@ import cv2
 import numpy as np
 
 from PerceptionProcessing.YoloDetector import YoloDetector
-from PerceptionProcessing.LLaVACaptioner import LLaVACaptioner
+from PerceptionProcessing.VLMCaptioner import VLMCaptioner
 from PerceptionProcessing.PerceptionEngine import PerceptionEngine
 from DataFusion.Datafusion import DataFusion
 from Network.TCPSender import TCPSender
@@ -204,7 +204,7 @@ def run_pipeline(engine, fusion, captioner, sender,
             if best_det.confidence < CAPTION_THRESH:
                 continue
 
-            # 4. LLaVA caption
+            # 4. VLM caption
             try:
                 caption = captioner.caption_detection(
                     image=frame,
@@ -235,8 +235,8 @@ def run_pipeline(engine, fusion, captioner, sender,
 
             # 6. Send
             for msg in msgs:
-                sent = sender.send(msg)
-                print(f"    MCP {msg.get('type')} {'SENT' if sent else 'DROPPED (no conn)'}")
+                sender.send(msg)
+                print(f"    MCP {msg.get('type')} queued (buffer={sender.buffer_size()})")
 
             stats["mcp_pairs_sent"] += 1
             captioned_tracks.add(track.track_id)
@@ -273,7 +273,7 @@ def run():
     fusion = DataFusion(iou_threshold=0.3, min_track_frames=MIN_TRACK_FRAMES, max_track_age=30)
     sender = TCPSender(host=RECV_HOST, port=RECV_PORT, retry_interval=0.3)
     print("  YoloDetector     ready")
-    print("  LLaVACaptioner   ready")
+    print("  VLMCaptioner   ready")
     print("  DataFusion       ready")
     print("  TCPSender        ready")
 
@@ -389,7 +389,7 @@ def run():
     print(f"\n  {'Module':<25} {'Status'}")
     print(f"  {'─'*50}")
     print(f"  {'YoloDetector':<25} PASS")
-    print(f"  {'LLaVACaptioner':<25} {'PASS (Ollama live)' if ollama_live else 'PASS (offline graceful)'}")
+    print(f"  {'VLMCaptioner':<25} {'PASS (Ollama live)' if ollama_live else 'PASS (offline graceful)'}")
     print(f"  {'PerceptionEngine':<25} PASS")
     print(f"  {'DataFusion':<25} PASS")
     print(f"  {'TCPSender':<25} PASS")
