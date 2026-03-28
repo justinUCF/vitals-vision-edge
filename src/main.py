@@ -69,7 +69,7 @@ AGENT_B_PORT     = int(os.getenv("AGENT_B_PORT", "9000"))
 UAV_ID           = os.getenv("UAV_ID",   "UAV_1")
 SECTOR           = os.getenv("SECTOR",   None)
 OLLAMA_HOST      = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-DEVICE           = os.getenv("DEVICE",   "cuda")
+DEVICE           = os.getenv("DEVICE",   "cpu")
 
 GPS_LAT          = os.getenv("GPS_LAT",  None)  # e.g. "28.6024"
 GPS_LON          = os.getenv("GPS_LON",  None)  # e.g. "-81.2001"
@@ -198,8 +198,8 @@ def main():
                     continue
 
                 if not caption or caption.startswith("Error:"):
-                    logger.warning("Caption invalid — skipping MCP: %s", caption)
-                    continue
+                    logger.warning("Caption unavailable (%s) — using fallback", caption or "empty")
+                    caption = "No caption could be generated."
 
                 # Attach caption so create_mcp_messages includes MCP.Caption
                 best_det.enrich(caption=caption)

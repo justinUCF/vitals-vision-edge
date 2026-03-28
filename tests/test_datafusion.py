@@ -283,9 +283,27 @@ def test_statistics():
     _ok(f"stats={stats}")
 
 
+def test_completed_tracks_cap():
+    """14 — completed_tracks list is capped to prevent unbounded memory growth."""
+    _header(14, "completed_tracks memory cap")
+    cap = 10
+    fusion = DataFusion(max_track_age=1, min_track_frames=1)
+    fusion.max_completed_tracks = cap
+
+    # Each iteration: new detection in a new location → new track → ages out next frame
+    for i in range(cap + 5):
+        unique_bbox = (i * 50, 0, i * 50 + 40, 40)
+        fusion.process_detections([_det(bbox=unique_bbox)])
+        fusion.process_detections([])  # age out the track
+
+    assert len(fusion.completed_tracks) <= cap, \
+        f"completed_tracks ({len(fusion.completed_tracks)}) exceeded cap ({cap})"
+    _ok(f"completed_tracks capped at {len(fusion.completed_tracks)} ≤ {cap}")
+
+
 def test_reset():
-    """14 — reset() clears all tracking state."""
-    _header(14, "Reset")
+    """15 — reset() clears all tracking state."""
+    _header(15, "Reset")
     fusion = DataFusion()
     for _ in range(3):
         fusion.process_detections([_det()])
@@ -317,6 +335,7 @@ def run():
         ("multi-drone tracking",     test_multi_drone_tracking),
         ("GPS averaging",            test_gps_averaging),
         ("statistics",               test_statistics),
+        ("completed tracks cap",     test_completed_tracks_cap),
         ("reset",                    test_reset),
     ]
 

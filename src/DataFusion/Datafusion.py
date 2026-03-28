@@ -104,10 +104,6 @@ class TrackedDetection:
         """Return detection with highest confidence"""
         return max(self.detections, key=lambda x: x[0].confidence)[0]
     
-    def get_latest_detection(self) -> Detection:
-        """Return most recent detection"""
-        return self.detections[-1][0]
-    
     def is_stable(self, min_frames: int = 3) -> bool:
         """Check if track is stable (seen across multiple frames)"""
         return self.frame_count >= min_frames

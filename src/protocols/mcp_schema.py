@@ -300,34 +300,6 @@ def create_detection_from_yolo(detection,
     )
 
 
-def create_caption_from_vlm(caption_text: str,
-                               uav_id: str,
-                               confidence: Optional[float] = None,
-                               sector: Optional[str] = None,
-                               correlation_id: Optional[str] = None) -> MCPCaption:
-    """
-    Helper: Create MCP.Caption from VLM output
-    
-    Args:
-        caption_text: VLM-generated description
-        uav_id: UAV identifier
-        confidence: Optional confidence score
-        sector: Optional sector
-        correlation_id: Optional mission ID
-    
-    Returns:
-        MCPCaption ready to send to Agent B
-    """
-    return MCPCaption(
-        caption=caption_text,
-        confidence=confidence,
-        sector=sector,
-        uav_id=uav_id,
-        instance=uav_id,
-        correlation_id=correlation_id
-    )
-
-
 # Example usage
 if __name__ == "__main__":
     import json

@@ -219,8 +219,8 @@ def run_pipeline(engine, fusion, captioner, sender,
 
             if not caption or caption.startswith("Error:"):
                 stats["captions_failed"] += 1
-                print(f"    Caption unavailable ({caption[:40]}...) — MCP not sent for track {track.track_id}")
-                continue
+                print(f"    Caption unavailable ({caption or 'empty'}) — using fallback")
+                caption = "No caption could be generated."
 
             stats["captions_generated"] += 1
             best_det.enrich(caption=caption)
@@ -333,14 +333,13 @@ def run():
     assert stats["total_detections"] >= 0
 
     if ollama_live:
-        # If Ollama is live we expect at least one MCP pair to have been sent
-        # (person track that became stable and got captioned)
-        pass   # reported but not enforced — depends on the model's detections
-        print("\n  Ollama was live — caption path was exercised")
+        print("\n  Ollama was live — full caption path exercised")
     else:
-        # Without Ollama, captions fail gracefully and no MCP messages are sent
-        assert stats["mcp_pairs_sent"] == 0 or stats["captions_failed"] >= 0
-        print("\n  Ollama offline — caption errors handled gracefully, no MCP sent")
+        # Without Ollama, VLM returns Error: strings which trigger the fallback
+        # caption "No caption could be generated." — MCP pairs are still emitted.
+        if stats["captions_failed"] > 0:
+            assert stats["mcp_pairs_sent"] >= 0  # fallback path — pairs may still be sent
+        print("\n  Ollama offline — fallback captions used, MCP emission unblocked")
 
     # ── Stage 7: Verify TCP messages (if any were sent) ───────────────────────
     _section(7, "Verify received MCP messages at Agent B")

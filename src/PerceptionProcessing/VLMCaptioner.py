@@ -1,10 +1,9 @@
-import torch
 import numpy as np
-from pathlib import Path
-from typing import Optional, Union, List
+from typing import Optional, Union
 from PIL import Image
 import io
 import base64
+
 
 class VLMCaptioner:
     """
@@ -19,7 +18,7 @@ class VLMCaptioner:
         self,
         model_name: str = "moondream",
         device: str = "cpu",
-        max_tokens: int = 50,  # REDUCED from 150 for shorter captions
+        max_tokens: int = 120,
         temperature: float = 0.7,
         ollama_host: str = "http://localhost:11434"
     ):
@@ -28,7 +27,7 @@ class VLMCaptioner:
         Args:
             model_name: VLM model name as registered in Ollama
             device: Device to run inference on ('cuda' or 'cpu')
-            max_tokens: Maximum tokens in generated caption (reduced for brevity)
+            max_tokens: Maximum tokens in generated caption
             temperature: Sampling temperature (higher = more creative)
         """
         self.model_name = model_name
@@ -40,9 +39,8 @@ class VLMCaptioner:
         print(f"Initializing VLM Captioner...")
         print(f"  Model: {model_name}")
         print(f"  Device: {device}")
-        print(f"  Max tokens: {max_tokens} (2 sentence max)")
+        print(f"  Max tokens: {max_tokens}")
 
-        # Model will be loaded via Ollama API
         self.model_loaded = True
 
         print("VLM Captioner initialized (using Ollama API)")
@@ -51,28 +49,17 @@ class VLMCaptioner:
         self,
         image: Union[str, np.ndarray, Image.Image],
         prompt: Optional[str] = None,
-        focus_bbox: Optional[tuple] = None
     ) -> str:
         """
-        Generate caption for an image
+        Generate caption for an image.
         Args:
             image: Image as file path, numpy array (BGR), or PIL Image
-            prompt: Optional custom prompt (default: general description)
-            focus_bbox: Optional (x_min, y_min, x_max, y_max) to crop/focus
+            prompt: Optional custom prompt
         Returns:
             Generated caption string
         """
-        # Load/convert image to PIL
         pil_image = self._prepare_image(image)
-
-        # Crop to focus area if specified
-        if focus_bbox is not None:
-            pil_image = self._crop_to_bbox(pil_image, focus_bbox)
-
-        # Generate caption using Ollama API
-        caption = self._generate_caption_ollama(pil_image, prompt)
-
-        return caption
+        return self._generate_caption_ollama(pil_image, prompt)
 
     def caption_detection(
         self,
@@ -80,124 +67,77 @@ class VLMCaptioner:
         detection_bbox: tuple,
         class_name: str,
         confidence: float,
-        context_margin: float = 0.2
     ) -> str:
         """
-        Generate contextual caption for a specific detection
+        Generate contextual caption for a specific detection.
+
+        Sends the full frame to the VLM with bbox coordinates embedded in the
+        prompt so the model retains full scene context while knowing exactly
+        where to focus.
 
         Args:
-            image: Full image
+            image: Full (uncropped) frame
             detection_bbox: (x_min, y_min, x_max, y_max) in pixels
             class_name: Detected object class
             confidence: Detection confidence
-            context_margin: Margin around bbox to include context
 
         Returns:
-            Pure caption (without metadata prefix) - prefix added by Detection object
+            Pure caption string
         """
-        # Expand bbox to include context
-        expanded_bbox = self._expand_bbox(detection_bbox, context_margin)
+        pil_image = self._prepare_image(image)
+        img_w, img_h = pil_image.size
+        prompt = self._build_sar_prompt(class_name, detection_bbox, img_w, img_h)
+        return self._generate_caption_ollama(pil_image, prompt)
 
-        # SAR-focused prompt: short, factual, 2 sentences max
-        prompt = self._build_sar_prompt(class_name)
-
-        # Generate caption
-        caption = self.caption_image(
-            image=image,
-            prompt=prompt,
-            focus_bbox=expanded_bbox
-        )
-
-        # Return PURE caption (no metadata prefix)
-        # The Detection object will add the prefix when needed
-        return caption
-
-    def batch_caption(
+    def _build_sar_prompt(
         self,
-        images: List[Union[str, np.ndarray]],
-        prompt: Optional[str] = None
-    ) -> List[str]:
+        class_name: str,
+        bbox: Optional[tuple] = None,
+        img_w: Optional[int] = None,
+        img_h: Optional[int] = None,
+    ) -> str:
         """
-        Generate captions for multiple images
-        Args:
-            images: List of images
-            prompt: Optional custom prompt for all images
-        Returns:
-            List of generated captions
-        """
-        captions = []
+        Build SAR-focused prompt for a person detection.
 
-        for i, image in enumerate(images):
-            print(f"Captioning image {i+1}/{len(images)}...")
-            caption = self.caption_image(image, prompt)
-            captions.append(caption)
-
-        return captions
-
-    def _build_sar_prompt(self, class_name: str) -> str:
-        """
-        Build SAR-focused prompt for specific object class
-
-        Optimized for:
-        - Short output (2 sentences max)
-        - Key SAR-relevant features only
-        - No technical camera/image quality descriptions
+        Uses relative position (top/middle/bottom, left/center/right) derived
+        from the bbox centroid. Pixel coordinates are intentionally omitted —
+        testing showed they cause moondream to return empty or garbage responses.
 
         Args:
-            class_name: Detected object class (person, vehicle, etc.)
+            class_name: Detected object class
+            bbox: Optional (x_min, y_min, x_max, y_max) in pixels
+            img_w: Full image width in pixels (used for relative position)
+            img_h: Full image height in pixels (used for relative position)
 
         Returns:
-            Optimized prompt string
+            Prompt string
         """
-        # Class-specific SAR prompts
-        if class_name.lower() == "person":
-            return (
-                "In 2 sentences or less: Describe the person's clothing color, "
-                "position, and any visible actions or distress signals. "
-                "Focus only on SAR-relevant details, no camera quality commentary."
-            )
-
-        elif class_name.lower() in ["vehicle", "car", "truck", "bus"]:
-            return (
-                "In 2 sentences or less: Describe the vehicle's color, type, "
-                "orientation, and condition. "
-                "Focus only on SAR-relevant details, no camera quality commentary."
-            )
-
-        elif class_name.lower() == "debris":
-            return (
-                "In 2 sentences or less: Describe the debris type, size, "
-                "and any hazards it may pose. "
-                "Focus only on SAR-relevant details, no camera quality commentary."
-            )
-
+        if bbox is not None and img_w and img_h:
+            x_min, y_min, x_max, y_max = (int(v) for v in bbox)
+            cx = (x_min + x_max) / 2
+            cy = (y_min + y_max) / 2
+            h_pos = "left" if cx < img_w / 3 else ("right" if cx > 2 * img_w / 3 else "center")
+            v_pos = "top" if cy < img_h / 3 else ("bottom" if cy > 2 * img_h / 3 else "middle")
+            position = f"{v_pos}-{h_pos}"
         else:
-            # Generic SAR prompt
-            return (
-                f"In 2 sentences or less: Describe this {class_name}'s appearance, "
-                f"location, and any notable features for search and rescue. "
-                f"Focus only on SAR-relevant details, no camera quality commentary."
-            )
+            position = "center"
+
+        return (
+            f"This is an aerial drone image. "
+            f"There is a {class_name} in the {position} of the frame. "
+            f"Describe their clothing color and body position."
+        )
 
     def _prepare_image(
         self,
         image: Union[str, np.ndarray, Image.Image]
     ) -> Image.Image:
-        """
-        Convert various image formats to PIL Image
-        Args:
-            image: Image in various formats
-        Returns:
-            PIL Image object
-        """
+        """Convert various image formats to PIL Image."""
         if isinstance(image, str):
-            # Load from file path
             return Image.open(image).convert('RGB')
 
         elif isinstance(image, np.ndarray):
-            # Convert numpy array to PIL RGB
             if len(image.shape) == 3 and image.shape[2] == 3:
-                # Convert BGR to RGB
                 image_rgb = image[:, :, ::-1]
             else:
                 image_rgb = image
@@ -209,66 +149,13 @@ class VLMCaptioner:
         else:
             raise TypeError(f"Unsupported image type: {type(image)}")
 
-    def _crop_to_bbox(
-        self,
-        image: Image.Image,
-        bbox: tuple
-    ) -> Image.Image:
-        """
-        Crop image to bounding box
-
-        Args:
-            image: PIL Image
-            bbox: (x_min, y_min, x_max, y_max) in pixels
-        Returns:
-            Cropped PIL Image
-        """
-        x_min, y_min, x_max, y_max = bbox
-
-        # Clamp to image bounds
-        x_min = max(0, int(x_min))
-        y_min = max(0, int(y_min))
-        x_max = min(image.width, int(x_max))
-        y_max = min(image.height, int(y_max))
-
-        return image.crop((x_min, y_min, x_max, y_max))
-
-    def _expand_bbox(
-        self,
-        bbox: tuple,
-        margin: float
-    ) -> tuple:
-        """
-        Expand bounding box by margin percentage
-
-        Args:
-            bbox: (x_min, y_min, x_max, y_max)
-            margin: Expansion factor
-        Returns:
-            Expanded bounding box
-        """
-        x_min, y_min, x_max, y_max = bbox
-
-        width = x_max - x_min
-        height = y_max - y_min
-
-        x_margin = width * margin / 2
-        y_margin = height * margin / 2
-
-        return (
-            x_min - x_margin,
-            y_min - y_margin,
-            x_max + x_margin,
-            y_max + y_margin
-        )
-
     def _generate_caption_ollama(
         self,
         image: Image.Image,
         prompt: Optional[str] = None
     ) -> str:
         """
-        Generate caption using Ollama API
+        Generate caption using Ollama API.
 
         Args:
             image: PIL Image
@@ -280,12 +167,10 @@ class VLMCaptioner:
         import requests
         import json
 
-        # Convert image to base64
         buffered = io.BytesIO()
         image.save(buffered, format="PNG")
         img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-        # Default prompt
         if prompt is None:
             prompt = (
                 "In 2 sentences or less: Describe key objects, people, "
@@ -294,7 +179,6 @@ class VLMCaptioner:
                 "Do not describe camera quality or image characteristics."
             )
 
-        # Prepare Ollama API request
         url = f"{self.ollama_host}/api/generate"
 
         payload = {
@@ -304,7 +188,7 @@ class VLMCaptioner:
             "stream": False,
             "options": {
                 "temperature": self.temperature,
-                "num_predict": self.max_tokens  # Limit output length
+                "num_predict": self.max_tokens
             }
         }
 
@@ -316,13 +200,9 @@ class VLMCaptioner:
             caption = result.get("response", "").strip()
 
             if not caption:
-                print("Warning: Empty caption generated")
-                caption = "No description available"
+                return "Error: empty response from VLM"
 
-            # Clean up the caption
-            caption = self._clean_caption(caption)
-
-            return caption
+            return self._clean_caption(caption)
 
         except requests.exceptions.ConnectionError:
             print("Error: Could not connect to Ollama. Is it running?")
@@ -339,20 +219,11 @@ class VLMCaptioner:
 
     def _clean_caption(self, caption: str) -> str:
         """
-        Clean and filter caption output
+        Clean and filter caption output.
 
-        Removes:
-        - Camera quality commentary
-        - Technical image descriptions
-        - Unnecessary preambles
-
-        Args:
-            caption: Raw caption from VLM
-
-        Returns:
-            Cleaned caption
+        Removes camera quality commentary, technical image descriptions,
+        and unnecessary preambles.
         """
-        # Remove common unwanted phrases
         unwanted_phrases = [
             "the image appears to be",
             "this image shows",
@@ -374,35 +245,36 @@ class VLMCaptioner:
             "can be seen in"
         ]
 
+        # Reject non-English output (moondream occasionally hallucinates in other languages)
+        ascii_ratio = sum(1 for c in caption if ord(c) < 128) / max(len(caption), 1)
+        if ascii_ratio < 0.8:
+            return "Error: non-English response from VLM"
+
+        # Reject all-punctuation garbage (e.g. "!!!!", "!!!!!")
+        alnum_ratio = sum(1 for c in caption if c.isalnum()) / max(len(caption), 1)
+        if alnum_ratio < 0.3:
+            return "Error: garbage response from VLM"
+
         caption_lower = caption.lower()
 
-        # Check if caption is mostly unwanted commentary
         unwanted_count = sum(1 for phrase in unwanted_phrases if phrase in caption_lower)
-
         if unwanted_count >= 3:
-            # Caption is too focused on image quality, return generic
             return "Scene detected, details unclear."
 
-        # Remove unwanted phrases
+        import re
         for phrase in unwanted_phrases:
-            # Case-insensitive replacement
-            import re
             pattern = re.compile(re.escape(phrase), re.IGNORECASE)
             caption = pattern.sub("", caption)
 
-        # Clean up whitespace and capitalization
         caption = caption.strip()
-        caption = " ".join(caption.split())  # Normalize whitespace
+        caption = " ".join(caption.split())
 
-        # Ensure first letter is capitalized
         if caption:
             caption = caption[0].upper() + caption[1:]
 
-        # Ensure it ends with punctuation
         if caption and caption[-1] not in ".!?":
             caption += "."
 
-        # Limit to approximately 2 sentences
         sentences = caption.split('. ')
         if len(sentences) > 2:
             caption = '. '.join(sentences[:2]) + '.'

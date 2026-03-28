@@ -152,7 +152,7 @@ def test_caption_generated_when_ollama_up(engine):
     """7 — generate_captions=True produces captions when Ollama is running."""
     _header(7, "Caption generation — requires Ollama")
     if not _ollama_available():
-        _skip("Ollama not running — start with 'ollama serve && ollama pull llava'")
+        _skip("Ollama not running — start with 'ollama serve && ollama pull moondream'")
         return
     # Use the image we know yields detections; lower threshold to be safe
     low_thresh_engine = PerceptionEngine(
