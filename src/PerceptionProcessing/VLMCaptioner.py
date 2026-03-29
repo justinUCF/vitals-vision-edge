@@ -20,7 +20,9 @@ class VLMCaptioner:
         device: str = "cpu",
         max_tokens: int = 120,
         temperature: float = 0.7,
-        ollama_host: str = "http://localhost:11434"
+        ollama_host: str = "http://localhost:11434",
+        timeout: int = 60,
+        max_image_width: int = 640,
     ):
         """
         Initialize VLM captioner
@@ -29,12 +31,16 @@ class VLMCaptioner:
             device: Device to run inference on ('cuda' or 'cpu')
             max_tokens: Maximum tokens in generated caption
             temperature: Sampling temperature (higher = more creative)
+            timeout: HTTP timeout in seconds for Ollama requests
+            max_image_width: Downscale images wider than this before sending
         """
         self.model_name = model_name
         self.device = device
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.ollama_host = ollama_host.rstrip("/")
+        self.timeout = timeout
+        self.max_image_width = max_image_width
 
         print(f"Initializing VLM Captioner...")
         print(f"  Model: {model_name}")
@@ -44,6 +50,33 @@ class VLMCaptioner:
         self.model_loaded = True
 
         print("VLM Captioner initialized (using Ollama API)")
+
+    def warmup(self) -> bool:
+        """
+        Send a lightweight request to Ollama to force model load into VRAM.
+        Returns True if the model responded successfully.
+        """
+        import requests
+
+        print("Warming up VLM model (loading into VRAM)...")
+        try:
+            resp = requests.post(
+                f"{self.ollama_host}/api/generate",
+                json={
+                    "model": self.model_name,
+                    "prompt": "hi",
+                    "stream": False,
+                    "keep_alive": "10m",
+                    "options": {"num_predict": 1},
+                },
+                timeout=self.timeout,
+            )
+            resp.raise_for_status()
+            print("VLM model warm — ready for captioning")
+            return True
+        except Exception as e:
+            print(f"VLM warmup failed: {e}")
+            return False
 
     def caption_image(
         self,
@@ -167,8 +200,14 @@ class VLMCaptioner:
         import requests
         import json
 
+        # Downscale large images to reduce vision-encoder work
+        if image.width > self.max_image_width:
+            ratio = self.max_image_width / image.width
+            new_size = (self.max_image_width, int(image.height * ratio))
+            image = image.resize(new_size, Image.LANCZOS)
+
         buffered = io.BytesIO()
-        image.save(buffered, format="PNG")
+        image.save(buffered, format="JPEG", quality=85)
         img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
         if prompt is None:
@@ -186,6 +225,7 @@ class VLMCaptioner:
             "prompt": prompt,
             "images": [img_base64],
             "stream": False,
+            "keep_alive": "10m",
             "options": {
                 "temperature": self.temperature,
                 "num_predict": self.max_tokens
@@ -193,7 +233,7 @@ class VLMCaptioner:
         }
 
         try:
-            response = requests.post(url, json=payload, timeout=15)
+            response = requests.post(url, json=payload, timeout=self.timeout)
             response.raise_for_status()
 
             result = response.json()

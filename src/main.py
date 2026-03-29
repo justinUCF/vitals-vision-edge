@@ -123,6 +123,7 @@ def main():
         ollama_host=OLLAMA_HOST,
     )
     captioner = engine.captioner
+    captioner.warmup()
 
     # -- DataFusion (temporal tracking) ------------------------------------
     fusion = DataFusion(
