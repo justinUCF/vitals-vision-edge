@@ -120,6 +120,7 @@ def main():
         yolo_confidence=YOLO_CONF,
         caption_threshold=CAPTION_THRESH,
         device=DEVICE,
+        yolo_device="cpu",
         ollama_host=OLLAMA_HOST,
     )
     captioner = engine.captioner

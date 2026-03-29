@@ -22,28 +22,30 @@ class PerceptionEngine:
         yolo_iou: float = 0.45,
         caption_threshold: float = 0.7,
         device: str = "cpu",
+        yolo_device: str = None,
         ollama_host: str = "http://localhost:11434"
     ):
         """
         Initialize PerceptionEngine with YOLO + VLM
-        
+
         Args:
             yolo_model_path: Path to YOLO .pt model
             yolo_confidence: YOLO detection confidence threshold
             yolo_iou: YOLO IoU threshold for NMS
             caption_threshold: Only caption detections above this confidence
-            device: Device to run on ('cuda' or 'cpu')
+            device: Device for VLM captioner ('cuda' or 'cpu')
+            yolo_device: Device for YOLO inference (defaults to device if None)
         """
         print("Initializing Perception Engine...")
-        
+
         # Initialize YOLO detector
         self.yolo_detector = YoloDetector(
             model_path=yolo_model_path,
             confidence_threshold=yolo_confidence,
             iou_threshold=yolo_iou,
-            device=device
+            device=yolo_device if yolo_device is not None else device
         )
-        
+
         # Initialize VLM captioner
         self.captioner = VLMCaptioner(device=device, ollama_host=ollama_host)
         
