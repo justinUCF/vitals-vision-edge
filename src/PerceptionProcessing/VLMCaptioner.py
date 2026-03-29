@@ -22,7 +22,7 @@ class VLMCaptioner:
         temperature: float = 0.7,
         ollama_host: str = "http://localhost:11434",
         timeout: int = 60,
-        max_image_width: int = 640,
+        max_image_width: int = 378,
     ):
         """
         Initialize VLM captioner
@@ -67,7 +67,7 @@ class VLMCaptioner:
                     "prompt": "hi",
                     "stream": False,
                     "keep_alive": "10m",
-                    "options": {"num_predict": 1},
+                    "options": {"num_predict": 1, "num_gpu": 99},
                 },
                 timeout=self.timeout,
             )
@@ -228,7 +228,8 @@ class VLMCaptioner:
             "keep_alive": "10m",
             "options": {
                 "temperature": self.temperature,
-                "num_predict": self.max_tokens
+                "num_predict": self.max_tokens,
+                "num_gpu": 99
             }
         }
 
