@@ -69,7 +69,7 @@ AGENT_B_PORT     = int(os.getenv("AGENT_B_PORT", "9000"))
 UAV_ID           = os.getenv("UAV_ID",   "UAV_1")
 SECTOR           = os.getenv("SECTOR",   None)
 OLLAMA_HOST      = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-DEVICE           = os.getenv("DEVICE",   "cpu")
+DEVICE           = os.getenv("DEVICE",   "cuda")
 
 GPS_LAT          = os.getenv("GPS_LAT",  None)  # e.g. "28.6024"
 GPS_LON          = os.getenv("GPS_LON",  None)  # e.g. "-81.2001"
