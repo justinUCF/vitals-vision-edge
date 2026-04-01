@@ -86,10 +86,6 @@ class TCPSender:
                 pass
         self._queue.put(message)
 
-    def is_connected(self) -> bool:
-        with self._sock_lock:
-            return self._sock is not None
-
     def buffer_size(self) -> int:
         """Number of messages currently waiting to be sent."""
         return self._queue.qsize()

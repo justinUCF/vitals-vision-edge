@@ -5,9 +5,7 @@ PerceptionEngine orchestrates YOLO detection + VLM captioning.
 Handles enrichment with drone metadata (drone_id, location, captions).
 """
 
-import cv2
 import numpy as np
-from pathlib import Path
 from typing import List, Tuple, Optional
 from PerceptionProcessing.YoloDetector import YoloDetector
 from PerceptionProcessing.VLMCaptioner import VLMCaptioner
@@ -54,49 +52,6 @@ class PerceptionEngine:
         
         print("Perception Engine ready")
     
-    def process_image_path(
-        self,
-        image_path: str,
-        drone_id: Optional[int] = None,
-        location: Optional[str] = None,
-        generate_captions: bool = False,
-        return_annotated: bool = True
-    ) -> Tuple[List[Detection], Optional[np.ndarray]]:
-        """
-        Process image from file path
-        
-        Args:
-            image_path: Path to image file
-            drone_id: Optional drone ID for enrichment
-            location: Optional location string (e.g., "28.6024,-81.2001")
-            generate_captions: Whether to generate VLM captions
-            return_annotated: Whether to return annotated image
-        
-        Returns:
-            Tuple of (detections_list, annotated_image)
-        """
-        print(f"Processing: {Path(image_path).name}")
-        print("-" * 80)
-        
-        # Run YOLO detection
-        detections, annotated_img = self.yolo_detector.detect_from_path(
-            image_path,
-            return_annotated=return_annotated
-        )
-
-        if detections:
-            print(f"Found {len(detections)} detection(s)")
-        
-        # Enrich with drone metadata
-        for det in detections:
-            det.enrich(drone_id=drone_id, location=location)
-        
-        # Generate captions if requested
-        if generate_captions:
-            detections = self._add_captions(image_path, detections)
-        
-        return detections, annotated_img
-    
     def process_image(
         self,
         image: np.ndarray,
@@ -139,25 +94,19 @@ class PerceptionEngine:
     
     def _add_captions(
         self,
-        image,  # Can be path (str) or numpy array
+        frame: np.ndarray,
         detections: List[Detection]
     ) -> List[Detection]:
         """
         Add VLM captions to detections above confidence threshold
-        
+
         Args:
-            image: Image path or numpy array
+            frame: Image as numpy array (BGR)
             detections: List of Detection objects
-        
+
         Returns:
             Updated detections with captions
         """
-        # Load image if path provided
-        if isinstance(image, str):
-            frame = cv2.imread(image)
-        else:
-            frame = image
-        
         for i, det in enumerate(detections, 1):
             # Only caption high-confidence detections
             if det.confidence >= self.caption_threshold:

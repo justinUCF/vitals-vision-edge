@@ -247,10 +247,6 @@ class DataFusion:
         """Return only tracks that are stable (seen across multiple frames)"""
         return [track for track in self.active_tracks if track.is_stable(self.min_track_frames)]
     
-    def get_high_confidence_tracks(self, threshold: float = 0.7) -> List[TrackedDetection]:
-        """Return tracks with aggregated confidence above threshold"""
-        return [track for track in self.active_tracks if track.confidence >= threshold]
-    
     def create_mcp_messages(
         self,
         tracks: Optional[List[TrackedDetection]] = None,
@@ -330,24 +326,3 @@ class DataFusion:
         
         return mcp_messages
     
-    def get_statistics(self) -> Dict:
-        """Return fusion statistics"""
-        stable_tracks = self.get_stable_tracks()
-        high_conf = self.get_high_confidence_tracks()
-        
-        return {
-            'frame_number': self.frame_number,
-            'active_tracks': len(self.active_tracks),
-            'stable_tracks': len(stable_tracks),
-            'high_confidence_tracks': len(high_conf),
-            'completed_tracks': len(self.completed_tracks),
-            'total_tracks_created': len(self.active_tracks) + len(self.completed_tracks)
-        }
-    
-    def reset(self):
-        """Reset all tracking state"""
-        self.active_tracks = []
-        self.completed_tracks = []
-        self.drone_tracks.clear()
-        self.frame_number = 0
-        print("DataFusion state reset")

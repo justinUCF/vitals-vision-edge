@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/gambo/School/VITALS/vitals-vision-edge/tests -name *.py -type f)"
+    ]
+  }
+}

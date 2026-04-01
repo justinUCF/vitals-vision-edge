@@ -19,7 +19,7 @@ class VLMCaptioner:
         model_name: str = "moondream",
         device: str = "cpu",
         max_tokens: int = 120,
-        temperature: float = 0.7,
+        temperature: float = 0.65,
         ollama_host: str = "http://localhost:11434",
         timeout: int = 60,
         max_image_width: int = 378,
@@ -77,22 +77,6 @@ class VLMCaptioner:
         except Exception as e:
             print(f"VLM warmup failed: {e}")
             return False
-
-    def caption_image(
-        self,
-        image: Union[str, np.ndarray, Image.Image],
-        prompt: Optional[str] = None,
-    ) -> str:
-        """
-        Generate caption for an image.
-        Args:
-            image: Image as file path, numpy array (BGR), or PIL Image
-            prompt: Optional custom prompt
-        Returns:
-            Generated caption string
-        """
-        pil_image = self._prepare_image(image)
-        return self._generate_caption_ollama(pil_image, prompt)
 
     def caption_detection(
         self,

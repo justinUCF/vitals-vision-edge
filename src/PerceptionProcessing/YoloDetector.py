@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
-from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 import logging
@@ -98,32 +97,6 @@ class YoloDetector:
             print(f"Error during detection: {e}")
             return [], None
         
-    def detect_from_path(
-        self,
-        image_path: str,
-        return_annotated: bool = True
-    ) -> Tuple[List[Detection], Optional[np.ndarray]]:
-        """
-        Run YOLO detection on an image file (matches existing interface)
-        
-        Args:
-            image_path: Path to image file
-            return_annotated: Whether to return annotated image
-        
-        Returns:
-            Tuple of (detections_list, annotated_image)
-        """
-        print(f"Loading image from {image_path}")
-        
-        # Load image using OpenCV (BGR format)
-        frame = cv2.imread(image_path)
-        
-        if frame is None:
-            print(f"Error: Could not load image from {image_path}")
-            return [], None
-        
-        return self.detect(frame, return_annotated)
-    
     def parse_results(
         self,
         result: Results,
@@ -284,32 +257,3 @@ class YoloDetector:
         color = tuple(np.random.randint(0, 255, 3).tolist())
         return color
     
-    def filter_detections(
-        self,
-        detections: List[Detection],
-        min_confidence: Optional[float] = None,
-        class_filter: Optional[List[str]] = None
-    ) -> List[Detection]:
-        """
-        Filter detections by confidence and/or class
-        
-        Args:
-            detections: List of Detection objects
-            min_confidence: Minimum confidence threshold
-            class_filter: List of class names to keep (None = keep all)
-        
-        Returns:
-            Filtered list of detections
-        """
-        filtered = detections
-        
-        # Filter by confidence
-        if min_confidence is not None:
-            filtered = [d for d in filtered if d.confidence >= min_confidence]
-        
-        # Filter by class
-        if class_filter is not None:
-            filtered = [d for d in filtered if d.class_name in class_filter]
-        
-        print(f"Filtered {len(detections)} -> {len(filtered)} detections")
-        return filtered

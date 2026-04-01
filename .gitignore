@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 tests/output/
+logs/
 .env
 venv/
 .venv/

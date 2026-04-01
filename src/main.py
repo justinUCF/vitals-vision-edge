@@ -108,7 +108,7 @@ def main():
     logger.info("Agent B    : %s:%d", AGENT_B_HOST, AGENT_B_PORT)
     logger.info("GPS        : %s", GPS_LOCATION or "not set (geo will be omitted from MCP)")
 
-    log_dir = _SRC.parent / "tests" / "output" / "main_mcp"
+    log_dir = _SRC.parent / "logs" / "mcp"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"mcp_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
     mcp_log = open(log_path, "w", encoding="utf-8")
