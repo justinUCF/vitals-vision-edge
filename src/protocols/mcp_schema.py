@@ -1,8 +1,8 @@
 # PerceptionProcessing/mcp_schema.py
 """
-MCP v0.1 Schema - Official VITALS Protocol Compliant
+MCP v0.2 Schema - Official VITALS Protocol Compliant
 
-Based on schemas/mcp.v0.1/base.json and schemas/mcp.v0.1/types/detection.json
+Based on schemas/mcp.v0.2/base.json and schemas/mcp.v0.2/types/detection.json
 """
 
 import uuid
@@ -12,14 +12,14 @@ from typing import Optional, Dict, Any, List
 
 class MCPDetection:
     """
-    MCP.Detection message - compliant with official MCP v0.1 schema.
-    
-    Schema location: schemas/mcp.v0.1/types/detection.json
-    
+    MCP.Detection message - compliant with official MCP v0.2 schema.
+
+    Schema location: schemas/mcp.v0.2/types/detection.json
+
     Required fields (enforced by schema):
     - Base: schema, event_id, ts, type, source, payload
     - Payload: label, confidence
-    
+
     This class generates messages that pass Agent B's SchemaValidator.
     """
     
@@ -82,6 +82,7 @@ class MCPDetection:
         
         # Auto-generated fields (required by base schema)
         self.event_id = f"evt_{uuid.uuid4().hex[:12]}"
+        self.idempotency_key = f"idem_{uuid.uuid4().hex[:12]}"
         self.timestamp = self._iso_now()
     
     @staticmethod
@@ -91,9 +92,9 @@ class MCPDetection:
     
     def to_dict(self) -> Dict[str, Any]:
         """
-        Convert to MCP v0.1 message format.
-        
-        Validates against: schemas/mcp.v0.1/message.json
+        Convert to MCP v0.2 message format.
+
+        Validates against: schemas/mcp.v0.2/message.json
         """
         # Build payload (detection.json schema)
         payload: Dict[str, Any] = {
@@ -125,8 +126,9 @@ class MCPDetection:
         
         # Build base message (all required fields)
         message: Dict[str, Any] = {
-            "schema": "mcp.v0.1",
+            "schema": "mcp.v0.2",
             "event_id": self.event_id,
+            "idempotency_key": self.idempotency_key,
             "ts": self.timestamp,
             "type": "MCP.Detection",
             "source": source,
@@ -187,8 +189,8 @@ class MCPDetection:
 class MCPCaption:
     """
     MCP.Caption message - for VLM-generated scene descriptions.
-    
-    Schema location: schemas/mcp.v0.1/types/caption.json
+
+    Schema location: schemas/mcp.v0.2/types/caption.json
     """
     
     def __init__(self,
@@ -212,12 +214,13 @@ class MCPCaption:
         self.correlation_id = correlation_id
         
         self.event_id = f"evt_{uuid.uuid4().hex[:12]}"
+        self.idempotency_key = f"idem_{uuid.uuid4().hex[:12]}"
         self.timestamp = self._iso_now()
-    
+
     @staticmethod
     def _iso_now() -> str:
         return datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z')
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to MCP.Caption message"""
         payload: Dict[str, Any] = {"caption": self.caption}
@@ -239,8 +242,9 @@ class MCPCaption:
             source["instance"] = self.instance
         
         message = {
-            "schema": "mcp.v0.1",
+            "schema": "mcp.v0.2",
             "event_id": self.event_id,
+            "idempotency_key": self.idempotency_key,
             "ts": self.timestamp,
             "type": "MCP.Caption",
             "source": source,

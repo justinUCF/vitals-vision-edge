@@ -78,7 +78,7 @@ def test_mcp_messages_from_stable_tracks(engine, sample_frame):
     msgs = fusion.create_mcp_messages(uav_id="UAV_1")
     assert len(msgs) > 0
     det_msg = msgs[0]
-    assert det_msg["schema"] == "mcp.v0.1"
+    assert det_msg["schema"] == "mcp.v0.2"
     assert det_msg["type"] == "MCP.Detection"
     assert "payload" in det_msg
 
@@ -98,7 +98,7 @@ def test_mcp_messages_serializable(engine, sample_frame):
         serialized = json.dumps(msg)
         assert isinstance(serialized, str)
         roundtrip = json.loads(serialized)
-        assert roundtrip["schema"] == "mcp.v0.1"
+        assert roundtrip["schema"] == "mcp.v0.2"
 
 
 # ── Pipeline stage 5: TCPSender accepts MCP messages ─────────────

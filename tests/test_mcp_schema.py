@@ -24,13 +24,15 @@ class TestMCPDetection:
     def test_required_fields(self):
         det = MCPDetection(label="person", confidence=0.9)
         d = det.to_dict()
-        assert d["schema"] == "mcp.v0.1"
+        assert d["schema"] == "mcp.v0.2"
         assert d["type"] == "MCP.Detection"
         assert d["event_id"].startswith("evt_")
         assert "ts" in d
         assert d["source"]["system"] == "VITALS"
         assert d["payload"]["label"] == "person"
         assert d["payload"]["confidence"] == 0.9
+        assert d["idempotency_key"].startswith("idem_")
+        assert len(d["idempotency_key"]) >= 8
 
     def test_event_id_unique(self):
         a = MCPDetection(label="person", confidence=0.8)
@@ -104,10 +106,12 @@ class TestMCPCaption:
     def test_required_fields(self):
         cap = MCPCaption(caption="Person in red shirt waving")
         d = cap.to_dict()
-        assert d["schema"] == "mcp.v0.1"
+        assert d["schema"] == "mcp.v0.2"
         assert d["type"] == "MCP.Caption"
         assert d["event_id"].startswith("evt_")
         assert d["payload"]["caption"] == "Person in red shirt waving"
+        assert d["idempotency_key"].startswith("idem_")
+        assert len(d["idempotency_key"]) >= 8
 
     def test_text_is_caption(self):
         cap = MCPCaption(caption="Person in red shirt waving")

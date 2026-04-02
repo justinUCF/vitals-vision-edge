@@ -188,7 +188,7 @@ class TestDataFusion:
         msgs = fusion.create_mcp_messages(uav_id="UAV_1")
         assert len(msgs) >= 1
         det_msg = msgs[0]
-        assert det_msg["schema"] == "mcp.v0.1"
+        assert det_msg["schema"] == "mcp.v0.2"
         assert det_msg["type"] == "MCP.Detection"
         assert det_msg["source"]["system"] == "VITALS"
         assert "payload" in det_msg
